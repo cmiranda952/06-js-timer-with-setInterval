@@ -5,11 +5,60 @@ const incrementButton = document.querySelector('#incrementButton');
 const startButton = document.querySelector('#startButton');
 
 // Initialize the timer value
-let timerValue = 20;
+let timerValue = 10;
+let countdownIntervalId;
+
+// Track the 10-second goal for the counter
+let challengeIsActive = false;
+let confettiShown = false;
+let challengeTimeoutId;
+
+// Goal settings
+const challengeDurationInMilliseconds = 10000;
+const targetCounterValue = 10;
+
+// Function to launch confetti using the canvas-confetti library
+function showConfetti() {
+    if (typeof confetti === 'function') {
+        confetti({
+            particleCount: 150,
+            spread: 80,
+            origin: { y: 0.6 }
+        });
+    }
+}
+
+// Function to start a new 10-second challenge
+function startCounterChallenge() {
+    challengeIsActive = true;
+    confettiShown = false;
+
+    clearTimeout(challengeTimeoutId);
+    challengeTimeoutId = setTimeout(function() {
+        challengeIsActive = false;
+    }, challengeDurationInMilliseconds);
+}
+
+// Check if the counter reached the target while the challenge is active
+function checkCounterGoal() {
+    if (challengeIsActive && !confettiShown && counterValue >= targetCounterValue) {
+        confettiShown = true;
+        challengeIsActive = false;
+        clearTimeout(challengeTimeoutId);
+        showConfetti();
+    }
+}
 
 // Function to start the countdown
 function startCountdown() {
-    const countdownInterval = setInterval(function() {
+    clearInterval(countdownIntervalId);
+
+    // Reset timer display and start the 10-second counter challenge
+    timerValue = 10;
+    timerDisplay.textContent = timerValue;
+    startCounterChallenge();
+
+    countdownIntervalId = setInterval(function() {
         // Decrement the timer value
         timerValue--;
         // Update the timer display
@@ -17,7 +66,7 @@ function startCountdown() {
 
         // Stop the countdown when the timer reaches 0
         if (timerValue <= 0) {
-            clearInterval(countdownInterval);
+            clearInterval(countdownIntervalId);
             timerDisplay.textContent = '0'; // Ensure the display shows 0
         }
     }, 1000);
@@ -32,6 +81,9 @@ function increaseCounter() {
     counterValue++;
     // Update the counter display
     counterDisplay.textContent = counterValue;
+
+    // Check if the user reached the counter goal in time
+    checkCounterGoal();
 }
 
 // Add an event listener to the increment button to increase the counter when clicked
